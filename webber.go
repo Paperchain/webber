@@ -34,11 +34,10 @@ type (
 		ContentType string
 
 		TimeoutInMs int
+		EnableGzip  bool
 
 		params  map[string]string
 		payload interface{}
-
-		enableGzip bool
 	}
 	Response struct {
 		*http.Response
@@ -116,7 +115,7 @@ func (r *Request) Do() (*Response, error) {
 
 	res := NewResponse(httpResponse)
 
-	if contentEncoding := httpResponse.Header.Get("Content-Encoding"); r.enableGzip && (contentEncoding == "gzip" || contentEncoding == "agzip") {
+	if contentEncoding := httpResponse.Header.Get("Content-Encoding"); r.EnableGzip && (contentEncoding == "gzip" || contentEncoding == "agzip") {
 		reader, err := gzip.NewReader(httpResponse.Body)
 		defer reader.Close()
 		if err != nil {
