@@ -111,33 +111,39 @@ func (r *Request) Do() (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer httpResponse.Body.Close()
 
 	res := NewResponse(httpResponse)
-
-	if contentEncoding := httpResponse.Header.Get("Content-Encoding"); r.EnableGzip && (contentEncoding == "gzip" || contentEncoding == "agzip") {
-		reader, err := gzip.NewReader(httpResponse.Body)
-		defer reader.Close()
-		if err != nil {
-			return nil, err
-		}
-
-		res.Data, err = ioutil.ReadAll(reader)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		res.Data, err = ioutil.ReadAll(httpResponse.Body)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	if !(httpResponse.StatusCode >= 200 && httpResponse.StatusCode < 300) {
 		return res, errUnsuccessfulResponse
 	}
 
 	return res, nil
+}
+
+func (r *Response) Read(uncompress bool) error {
+	var err error
+
+	defer r.Body.Close()
+	if contentEncoding := r.Header.Get("Content-Encoding"); uncompress && (contentEncoding == "gzip" || contentEncoding == "agzip") {
+		reader, err := gzip.NewReader(r.Body)
+		defer reader.Close()
+		if err != nil {
+			return err
+		}
+
+		r.Data, err = ioutil.ReadAll(reader)
+		if err != nil {
+			return err
+		}
+	} else {
+		r.Data, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (r *Request) getURLString() (string, error) {

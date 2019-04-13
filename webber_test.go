@@ -23,7 +23,9 @@ func TestCanGet(t *testing.T) {
 
 	wbr := &Request{URI: uri}
 	res, err := wbr.Get(params)
+	require.Nil(t, err)
 
+	err = res.Read(false)
 	require.Nil(t, err)
 
 	var tpp []TestPost
@@ -51,7 +53,9 @@ func TestCanPost(t *testing.T) {
 
 	wbr := &Request{URI: uri, ContentType: ContentTypeApplicationJSON}
 	res, err := wbr.Post(tp)
+	require.Nil(t, err)
 
+	err = res.Read(false)
 	require.Nil(t, err)
 
 	err = json.Unmarshal(res.Data, &tp)
