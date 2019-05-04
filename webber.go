@@ -68,19 +68,23 @@ func (r *Request) Post(payload interface{}) (*Response, error) {
 	return r.Do()
 }
 
-func (r *Request) Do() (*Response, error) {
-	netTransport := &http.Transport{
+var (
+	netTransport = &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout: defaultTimeoutInMs * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout: defaultTimeoutInMs * time.Second,
+		MaxIdleConns:        20,
+		MaxIdleConnsPerHost: 20,
 	}
 
-	client := &http.Client{
+	client = &http.Client{
 		Timeout:   time.Second * defaultTimeoutInMs,
 		Transport: netTransport,
 	}
+)
 
+func (r *Request) Do() (*Response, error) {
 	u, err := r.getURLString()
 	if err != nil {
 		return nil, err
@@ -108,13 +112,8 @@ func (r *Request) Do() (*Response, error) {
 	}
 
 	httpResponse, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
 	res := NewResponse(httpResponse)
-
-	if !(httpResponse.StatusCode >= 200 && httpResponse.StatusCode < 300) {
+	if err != nil || !(httpResponse.StatusCode >= 200 && httpResponse.StatusCode < 300) {
 		return res, errUnsuccessfulResponse
 	}
 
