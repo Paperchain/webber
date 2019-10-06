@@ -107,8 +107,6 @@ func (r *Request) Do() (*Response, error) {
 
 	if r.ContentType != "" {
 		req.Header.Set("Content-Type", r.ContentType)
-	} else {
-		req.Header.Set("Content-Type", ContentTypeApplicationJSON)
 	}
 
 	httpResponse, err := client.Do(req)
