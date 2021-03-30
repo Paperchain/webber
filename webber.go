@@ -121,6 +121,13 @@ func (r *Request) Do() (*Response, error) {
 func (r *Response) Read(uncompress bool) error {
 	var err error
 
+	// If a request fails gets rejected early it may have a nil *http.Response
+	// object in that case any *http.Response attributes like request Header,
+	// Body etc. won't be available.
+	if r.Response == nil {
+		return nil
+	}
+
 	defer r.Body.Close()
 	if contentEncoding := r.Header.Get("Content-Encoding"); uncompress && (contentEncoding == "gzip" || contentEncoding == "agzip") {
 		reader, err := gzip.NewReader(r.Body)
